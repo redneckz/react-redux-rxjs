@@ -37,11 +37,12 @@ export function reactive(
             const props$ = this.propsSubject.distinctUntilChanged(isSame);
             const mappedProps$ = propsMapper(props$)
                 .filter(isPlainObject);
+            const mappedActions$ = createActionsObservable(
+                actionsMapper(mappedProps$)
+            );
             const newProps$ = Rx.Observable.merge(
                 mappedProps$,
-                createActionsObservable(
-                    actionsMapper(mappedProps$)
-                )
+                mappedActions$
             ).filter(isPlainObject);
             this.subscription = newProps$.subscribe(newProps => this.setState(newProps));
         }

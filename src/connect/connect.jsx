@@ -1,5 +1,5 @@
 import React from 'react';
-import {connect as reduxConnect} from 'react-redux';
+import * as ReactRedux from 'react-redux';
 import isFunction from 'lodash/isFunction';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
@@ -17,7 +17,7 @@ export function connect(
     if (!isFunction(dispatchToActionsMapper)) {
         throw new TypeError('[dispatchToActionsMapper] should be a function');
     }
-    return WrappedComponent => reduxConnect(
+    return WrappedComponent => ReactRedux.connect(
         storeState => ({storeState})
     )(class ReactiveConnectWrapper extends React.PureComponent {
         static displayName = `ReactiveConnect(${WrappedComponent.displayName || WrappedComponent.name})`;
@@ -26,9 +26,10 @@ export function connect(
 
         constructor(props) {
             super(props);
-            this.state = props;
+            const initialProps = extractComponentProps(props);
+            this.state = initialProps;
             this.storeStateSubject = new Rx.BehaviorSubject(props.storeState);
-            this.propsSubject = new Rx.BehaviorSubject(extractComponentProps(props));
+            this.propsSubject = new Rx.BehaviorSubject(initialProps);
         }
 
         componentWillMount() {
