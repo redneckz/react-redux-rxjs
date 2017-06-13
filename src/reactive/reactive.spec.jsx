@@ -1,5 +1,9 @@
 import React from 'react';
-import Rx from 'rxjs';
+import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/switchMap';
+import 'rxjs/add/operator/withLatestFrom';
 import isFunction from 'lodash/isFunction';
 import ReactShallowRenderer from 'react-test-renderer/shallow';
 import {reactive} from './reactive';
@@ -46,7 +50,7 @@ describe('reactive decorator', () => {
     });
 
     describe('@reactive(propsMapper, actionsDefinitions)', () => {
-        const fetchBar = barId => Rx.Observable.of(`Bar #${barId}`);
+        const fetchBar = barId => Observable.of(`Bar #${barId}`);
 
         let FooWrapper;
         beforeEach(() => {
@@ -81,7 +85,7 @@ describe('reactive decorator', () => {
     });
 
     describe('@reactive(propsMapper, actionsMapper)', () => {
-        const fetchBar = barId => Rx.Observable.of(`Bar #${barId}`);
+        const fetchBar = barId => Observable.of(`Bar #${barId}`);
 
         let FooWrapper;
         beforeEach(() => {

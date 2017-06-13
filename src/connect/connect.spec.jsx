@@ -2,7 +2,10 @@ import React from 'react';
 import {mount} from 'enzyme';
 import isFunction from 'lodash/isFunction';
 import {internals} from 'react-redux';
-import Rx from 'rxjs';
+import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/observable/empty';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/ignoreElements';
 import {connect} from './connect';
 
 jest.mock('react-redux', () => {
@@ -67,7 +70,7 @@ describe('connect decorator', () => {
     it(`should provide [dispatch] operator/function as argument of [dispatchToActionsMapper]
         to "push" actions inside store`, () => {
         const doSomething = payload => ({type: 'SIDE_EFFECT', payload});
-        const dispatchToActionsMapper = jest.fn(() => Rx.Observable.empty());
+        const dispatchToActionsMapper = jest.fn(() => Observable.empty());
         const FooWrapper = connect(
             undefined,
             dispatchToActionsMapper
@@ -84,7 +87,7 @@ describe('connect decorator', () => {
         const FooWrapper = connect(
             undefined,
             () => ({
-                toggle: () => Rx.Observable.empty()
+                toggle: () => Observable.empty()
             })
         )(Foo);
         const fooWrapper = mount(<FooWrapper />);

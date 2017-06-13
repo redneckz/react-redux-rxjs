@@ -1,3 +1,4 @@
+import 'rxjs/add/operator/do';
 import isFunction from 'lodash/isFunction';
 import identity from 'lodash/identity';
 

@@ -1,2 +1,2 @@
-export * from './connect';
-export * from './reactive';
+export {connect} from './connect';
+export {reactive} from './reactive';

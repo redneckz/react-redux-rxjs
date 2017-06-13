@@ -3,13 +3,18 @@ import * as ReactRedux from 'react-redux';
 import isFunction from 'lodash/isFunction';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
-import Rx from 'rxjs';
+import {Observable} from 'rxjs/Observable';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import 'rxjs/add/observable/empty';
+import 'rxjs/add/observable/merge';
+import 'rxjs/add/operator/distinctUntilChanged';
+import 'rxjs/add/operator/filter';
 import {isSame, createActionsObservable} from '../utils';
 import {tapDispatchOperator} from './tap-dispatch-operator';
 
 export function connect(
     stateToPropsMapper = (storeState$, props$) => props$,
-    dispatchToActionsMapper = () => Rx.Observable.empty()
+    dispatchToActionsMapper = () => Observable.empty()
 ) {
     if (!isFunction(stateToPropsMapper)) {
         throw new TypeError('[stateToPropsMapper] should be a function');
@@ -28,8 +33,8 @@ export function connect(
             super(props);
             const initialProps = extractComponentProps(props);
             this.state = initialProps;
-            this.storeStateSubject = new Rx.BehaviorSubject(props.storeState);
-            this.propsSubject = new Rx.BehaviorSubject(initialProps);
+            this.storeStateSubject = new BehaviorSubject(props.storeState);
+            this.propsSubject = new BehaviorSubject(initialProps);
         }
 
         componentWillMount() {
@@ -43,7 +48,7 @@ export function connect(
                     mappedState$
                 )
             ).filter(isPlainObject);
-            const newProps$ = Rx.Observable.merge(
+            const newProps$ = Observable.merge(
                 mappedState$,
                 mappedActions$
             );

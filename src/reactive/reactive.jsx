@@ -1,12 +1,17 @@
 import React from 'react';
 import isFunction from 'lodash/isFunction';
 import isPlainObject from 'lodash/isPlainObject';
-import Rx from 'rxjs';
+import {Observable} from 'rxjs/Observable';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import 'rxjs/add/observable/empty';
+import 'rxjs/add/observable/merge';
+import 'rxjs/add/operator/distinctUntilChanged';
+import 'rxjs/add/operator/filter';
 import {isSame, createActionsObservable} from '../utils';
 
 export function reactive(
     propsMapper = props$ => props$,
-    actionsMapper = () => Rx.Observable.empty()
+    actionsMapper = () => Observable.empty()
 ) {
     if (isPlainObject(propsMapper)) {
         const actionsDefinitions = propsMapper;
@@ -30,7 +35,7 @@ export function reactive(
         constructor(props) {
             super(props);
             this.state = props;
-            this.propsSubject = new Rx.BehaviorSubject(props);
+            this.propsSubject = new BehaviorSubject(props);
         }
 
         componentWillMount() {
@@ -40,7 +45,7 @@ export function reactive(
             const mappedActions$ = createActionsObservable(
                 actionsMapper(mappedProps$)
             );
-            const newProps$ = Rx.Observable.merge(
+            const newProps$ = Observable.merge(
                 mappedProps$,
                 mappedActions$
             ).filter(isPlainObject);

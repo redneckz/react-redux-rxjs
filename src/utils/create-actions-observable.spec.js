@@ -1,4 +1,11 @@
-import Rx from 'rxjs';
+import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/operator/first';
+import 'rxjs/add/operator/delay';
+import 'rxjs/add/operator/skip';
+import 'rxjs/add/operator/bufferCount';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
 import isFunction from 'lodash/isFunction';
 import keys from 'lodash/keys';
@@ -15,7 +22,7 @@ describe('createActionsObservable', () => {
     it('should create observable containing action function for each action definition',
         (done) => {
             const actionsObservable = createActionsObservable(ACTIONS_DEFINITIONS);
-            expect(actionsObservable).toBeInstanceOf(Rx.Observable);
+            expect(actionsObservable).toBeInstanceOf(Observable);
             actionsObservable.first().subscribe((actions) => {
                 expect(isPlainObject(actions)).toBeTruthy();
                 keys(ACTIONS_DEFINITIONS).forEach((key) => {
@@ -30,7 +37,7 @@ describe('createActionsObservable', () => {
     it('should handle each action invocation by means of transducer declared in action definition',
         (done) => {
             const actionsObservable = createActionsObservable(ACTIONS_DEFINITIONS);
-            expect(actionsObservable).toBeInstanceOf(Rx.Observable);
+            expect(actionsObservable).toBeInstanceOf(Observable);
             actionsObservable.first().delay(0).subscribe((actions) => {
                 actions.doFoo(123);
                 actions.doBar(456);
@@ -48,16 +55,16 @@ describe('createActionsObservable', () => {
     );
 
     it('should silently pass through observables as is (degenerate case)', () => {
-        const o = Rx.Observable.of({});
+        const o = Observable.of({});
         expect(createActionsObservable(o)).toBe(o);
     });
 
     it('should return empty observable if nil passed (degenerate case)', () => {
         const nullActionsObservable = createActionsObservable(null);
-        expect(nullActionsObservable).toBeInstanceOf(Rx.Observable);
+        expect(nullActionsObservable).toBeInstanceOf(Observable);
         expect(nullActionsObservable.isEmpty()).toBeTruthy();
         const undefinedActionsObservable = createActionsObservable(undefined);
-        expect(undefinedActionsObservable).toBeInstanceOf(Rx.Observable);
+        expect(undefinedActionsObservable).toBeInstanceOf(Observable);
         expect(undefinedActionsObservable.isEmpty()).toBeTruthy();
     });
 
