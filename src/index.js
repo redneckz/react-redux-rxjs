@@ -1,3 +1,4 @@
+export {Config} from './config';
 export {connect} from './connect';
 export {reactive} from './reactive';
-export {Config} from './config';
+export {observableActionMiddleware} from './utils/observable-action-middleware';
