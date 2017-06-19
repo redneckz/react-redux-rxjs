@@ -12,6 +12,7 @@ import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/filter';
 import {isSame, createActionsObservable} from '../utils';
 import {tapDispatchOperator} from './tap-dispatch-operator';
+import {Config} from '../config';
 
 export function connect(
     stateToPropsMapper = (storeState$, props$) => props$,
@@ -36,7 +37,7 @@ export function connect(
     }
     return WrappedComponent => ReactRedux.connect(
         storeState => ({storeState})
-    )(class ReactiveConnectWrapper extends React.PureComponent {
+    )(class ReactiveConnectWrapper extends Config.COMPONENT_BASE_CLASS {
         static displayName = `ReactiveConnect(${WrappedComponent.displayName || WrappedComponent.name})`;
 
         static internals = {WrappedComponent, stateToPropsMapper, dispatchToActionsMapper};

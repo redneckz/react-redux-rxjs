@@ -8,6 +8,7 @@ import 'rxjs/add/observable/merge';
 import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/filter';
 import {isSame, createActionsObservable} from '../utils';
+import {Config} from '../config';
 
 export function reactive(
     propsMapper = props$ => props$,
@@ -27,7 +28,7 @@ export function reactive(
     if (!isFunction(actionsMapper)) {
         throw new TypeError('[actionsMapper] should be a function');
     }
-    return WrappedComponent => class ReactiveWrapper extends React.PureComponent {
+    return WrappedComponent => class ReactiveWrapper extends Config.COMPONENT_BASE_CLASS {
         static displayName = `Reactive(${WrappedComponent.displayName || WrappedComponent.name})`;
 
         static internals = {WrappedComponent, propsMapper, actionsMapper};
