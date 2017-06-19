@@ -29,6 +29,10 @@ jest.mock('react-redux', () => {
         },
         internals: {
             INITIAL_STORE_STATE,
+            reset() {
+                storeState = INITIAL_STORE_STATE;
+                lastAction = undefined;
+            },
             get lastAction() {
                 return lastAction;
             },
@@ -47,12 +51,16 @@ describe('connect decorator', () => {
         return <div />;
     }
 
+    beforeEach(() => {
+        internals.reset();
+    });
+
     it('should pass props to underlying/wrapped component', () => {
         const FooWrapper = connect()(Foo);
         const fooWrapper = mount(<FooWrapper bar={123} visible />);
         const foo = fooWrapper.find(Foo);
         expect(foo.props().bar).toEqual(123);
-        expect(foo.props().visible).toBeTruthy();
+        expect(foo.props().visible).toBe(true);
     });
 
     it('should transduce store state to props by means of [stateToPropsMapper]', () => {
@@ -95,6 +103,44 @@ describe('connect decorator', () => {
         expect(isFunction(foo.props().toggle)).toBeTruthy();
     });
 
+    describe('store actions dispatching', () => {
+        const doSomething = payload => ({type: 'SIDE_EFFECT', payload});
+
+        function shouldDispatchCorrectAction(FooWrapper) {
+            const fooWrapper = mount(<FooWrapper />);
+            const foo = fooWrapper.find(Foo);
+            const dispatchedDoSomething = foo.props().doSomething;
+            expect(isFunction(dispatchedDoSomething)).toBeTruthy();
+            dispatchedDoSomething(123);
+            expect(internals.lastAction).toEqual(doSomething(123));
+        }
+
+        it('can be defined as function [dispatchToActionsMapper] from dispatch to actions map', () => {
+            const FooWrapper = connect(
+                undefined,
+                dispatch => ({
+                    doSomething: payload$ => payload$::dispatch(doSomething).ignoreElements()
+                })
+            )(Foo);
+            shouldDispatchCorrectAction(FooWrapper);
+        });
+
+        it('can be defined as actions map (plain object)', () => {
+            const FooWrapper = connect(
+                undefined,
+                {doSomething: payload$ => payload$.map(doSomething)}
+            )(Foo);
+            shouldDispatchCorrectAction(FooWrapper);
+        });
+
+        it('can be defined as actions map (plain object) and passed as first argument', () => {
+            const FooWrapper = connect(
+                {doSomething: payload$ => payload$.map(doSomething)}
+            )(Foo);
+            shouldDispatchCorrectAction(FooWrapper);
+        });
+    });
+
     it('should interact with underlying/wrapped component by means of actions', () => {
         const FooWrapper = connect(
             undefined,
@@ -105,9 +151,9 @@ describe('connect decorator', () => {
         const fooWrapper = mount(<FooWrapper />);
         const foo = fooWrapper.find(Foo);
         foo.props().toggle(false);
-        expect(foo.props().visible).toBeTruthy(); // visibility inversion
+        expect(foo.props().visible).toBe(true); // visibility inversion
         foo.props().toggle(true);
-        expect(foo.props().visible).toBeFalsy(); // visibility inversion
+        expect(foo.props().visible).toBe(false); // visibility inversion
     });
 
     it('should interact with store by means of dispatched actions', () => {
@@ -126,5 +172,12 @@ describe('connect decorator', () => {
         expect(internals.lastAction).toEqual(doToggle(true));
         foo.props().toggle(false);
         expect(internals.lastAction).toEqual(doToggle(false));
+    });
+
+    it('should fail if [stateToPropsMapper] is not a function', () => {
+        expect(() => connect(null)).toThrow(TypeError);
+    });
+    it('should fail if [dispatchToActionsMapper] is not a function and not an object', () => {
+        expect(() => connect(undefined, null)).toThrow(TypeError);
     });
 });

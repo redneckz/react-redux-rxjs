@@ -128,5 +128,12 @@ describe('reactive decorator', () => {
             expect(props.visible).toBeTruthy();
             expect(props.message).toEqual('Bar #123 was opened');
         });
+
+        it('should fail if [propsMapper] is not a function', () => {
+            expect(() => reactive(null)).toThrow(TypeError);
+        });
+        it('should fail if [actionsMapper] is not a function and not an object', () => {
+            expect(() => reactive(undefined, null)).toThrow(TypeError);
+        });
     });
 });

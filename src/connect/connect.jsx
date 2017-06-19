@@ -2,6 +2,7 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 import isFunction from 'lodash/isFunction';
 import isPlainObject from 'lodash/isPlainObject';
+import mapValues from 'lodash/mapValues';
 import omit from 'lodash/omit';
 import {Observable} from 'rxjs/Observable';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
@@ -16,6 +17,17 @@ export function connect(
     stateToPropsMapper = (storeState$, props$) => props$,
     dispatchToActionsMapper = () => Observable.empty()
 ) {
+    if (isPlainObject(stateToPropsMapper)) {
+        const actionsDefinitions = stateToPropsMapper;
+        return connect(undefined, actionsDefinitions);
+    }
+    if (isPlainObject(dispatchToActionsMapper)) {
+        const actionsDefinitions = dispatchToActionsMapper;
+        return connect(stateToPropsMapper, dispatch => mapValues(
+            actionsDefinitions,
+            dispatchedActionCreatorMapper(dispatch)
+        ));
+    }
     if (!isFunction(stateToPropsMapper)) {
         throw new TypeError('[stateToPropsMapper] should be a function');
     }
@@ -76,4 +88,8 @@ export function connect(
 
 function extractComponentProps(props) {
     return omit(props, ['storeState', 'dispatch']);
+}
+
+function dispatchedActionCreatorMapper(dispatch) {
+    return action => arg$ => action(arg$).do(dispatch).ignoreElements();
 }

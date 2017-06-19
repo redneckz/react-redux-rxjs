@@ -15,7 +15,7 @@ export function reactive(
 ) {
     if (isPlainObject(propsMapper)) {
         const actionsDefinitions = propsMapper;
-        return reactive(undefined, () => actionsDefinitions);
+        return reactive(undefined, actionsDefinitions);
     }
     if (isPlainObject(actionsMapper)) {
         const actionsDefinitions = actionsMapper;

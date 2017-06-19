@@ -1,4 +1,4 @@
-# rxjs-connect
+# react-redux-rxjs
 
 React/Redux are going reactive with RxJS by means of this small library
 
