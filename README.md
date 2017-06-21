@@ -13,6 +13,10 @@ React/Redux are going reactive with RxJS by means of this small library
 npm install --save @redneckz/react-redux-rxjs
 ```
 
+# Examples
+
+*Under active development...*
+
 # License
 
 [MIT](http://vjpr.mit-license.org)
