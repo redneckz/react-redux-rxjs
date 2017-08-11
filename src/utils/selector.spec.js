@@ -24,8 +24,7 @@ describe('selector', () => {
             .concatMap(s => [s, s, s]); // duplicate
     });
 
-    it(`should select distinct values by means of provided function
-        (consequent duplicates are ignored)`, (done) => {
+    it('should select distinct values by means of provided function (consequent duplicates are ignored)', (done) => {
         const selectFoo = selector(({foo}) => foo);
         selectFoo(state$)::head().subscribe((fooHistory) => {
             expect(fooHistory).toEqual(FOO_HISTORY);
@@ -33,8 +32,7 @@ describe('selector', () => {
         });
     });
 
-    it(`should select distinct values by means of provided function
-        relative to parent selector`, (done) => {
+    it('should select distinct values by means of provided function relative to parent selector', (done) => {
         const selectBar = selector(({bar = {}}) => bar);
         const selectBaz = selector([selectBar], ({baz}) => baz);
         selectBaz(state$)::head().subscribe((bazHistory) => {
@@ -43,8 +41,7 @@ describe('selector', () => {
         });
     });
 
-    it(`should select distinct values by means of provided function
-        and several parent selectors`, (done) => {
+    it('should select distinct values by means of provided function and several parent selectors', (done) => {
         const selectFoo = selector(({foo}) => foo);
         const selectBar = selector(({bar = {}}) => bar);
         const selectBaz = selector([selectBar], ({baz}) => baz);

@@ -114,8 +114,7 @@ describe('reactive decorator', () => {
             expect(isFunction(props.toggle)).toBeTruthy();
         });
 
-        it(`should interact with underlying/wrapped component by means of actions
-            transduced with [actionsMapper]`, () => {
+        it('should interact with underlying/wrapped component by means of actions transduced with [actionsMapper]', () => {
             renderer.render(<FooWrapper barId={123} visible />);
             let props = renderer.getRenderOutput().props;
             expect(props.visible).toBeTruthy();

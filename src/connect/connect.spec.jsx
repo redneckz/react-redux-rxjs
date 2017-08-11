@@ -75,8 +75,7 @@ describe('connect decorator', () => {
         expect(foo.props().baz).toEqual(123);
     });
 
-    it(`should provide [dispatch] operator/function as argument of [dispatchToActionsMapper]
-        to "push" actions inside store`, () => {
+    it('should provide [dispatch] operator/function as argument of [dispatchToActionsMapper] to "push" actions inside store', () => {
         const doSomething = payload => ({type: 'SIDE_EFFECT', payload});
         const dispatchToActionsMapper = jest.fn(() => Observable.empty());
         const FooWrapper = connect(
