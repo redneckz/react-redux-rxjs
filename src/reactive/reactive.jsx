@@ -44,7 +44,10 @@ export function reactive(
             const mappedProps$ = propsMapper(props$)
                 .filter(isPlainObject);
             const mappedActions$ = createActionsObservable(
-                actionsMapper(mappedProps$)
+                actionsMapper(Observable.merge(
+                    props$,
+                    mappedProps$
+                ))
             );
             const newProps$ = Observable.merge(
                 mappedProps$,

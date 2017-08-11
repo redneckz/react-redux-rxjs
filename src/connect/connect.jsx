@@ -58,7 +58,10 @@ export function connect(
             const mappedActions$ = createActionsObservable(
                 dispatchToActionsMapper(
                     tapDispatchOperator(this.props.dispatch),
-                    mappedState$
+                    Observable.merge(
+                        props$,
+                        mappedState$
+                    )
                 )
             ).filter(isPlainObject);
             const newProps$ = Observable.merge(

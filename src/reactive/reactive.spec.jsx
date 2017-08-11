@@ -4,6 +4,7 @@ import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/withLatestFrom';
+import 'rxjs/add/operator/bufferCount';
 import isFunction from 'lodash/isFunction';
 import ReactShallowRenderer from 'react-test-renderer/shallow';
 import {reactive} from './reactive';
@@ -81,6 +82,28 @@ describe('reactive decorator', () => {
             props.toggle(props.visible);
             props = renderer.getRenderOutput().props;
             expect(props.visible).toBeFalsy();
+        });
+    });
+
+    describe('@reactive(propsMapper, actionsMapper)', () => {
+        const actionsMapperMock = jest.fn(() => ({}));
+        let FooWrapper;
+        beforeEach(() => {
+            FooWrapper = reactive(props$ => props$.map(
+                ({baz}) => ({quuz: baz})
+            ), actionsMapperMock)(Foo);
+        });
+
+        it('should pass original props as well as transformed props to [actionsMapper]', (done) => {
+            renderer.render(<FooWrapper baz={123} />);
+            const props$ = actionsMapperMock.mock.calls[0][0];
+            props$.bufferCount(2).subscribe((doFooArgs) => {
+                expect(doFooArgs).toEqual([
+                    {baz: 123},
+                    {quuz: 123}
+                ]);
+                done();
+            });
         });
     });
 
