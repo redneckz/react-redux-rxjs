@@ -173,6 +173,25 @@ describe('connect decorator', () => {
         expect(internals.lastAction).toEqual(doToggle(false));
     });
 
+    describe('@connect(stateToPropsMapper, dispatchToActionsMapper)', () => {
+        const actionsMapperMock = jest.fn(() => ({}));
+        let FooWrapper;
+        beforeEach(() => {
+            FooWrapper = connect((storeState$, props$) => props$.map(
+                ({baz}) => ({quuz: baz})
+            ), actionsMapperMock)(Foo);
+        });
+
+        it('should pass original props as well as transformed props to [dispatchToActionsMapper]', (done) => {
+            mount(<FooWrapper baz={123} />);
+            const props$ = actionsMapperMock.mock.calls[0][1];
+            props$.subscribe((fooArgs) => {
+                expect(fooArgs).toEqual({baz: 123, quuz: 123});
+                done();
+            });
+        });
+    });
+
     it('should fail if [stateToPropsMapper] is not a function', () => {
         expect(() => connect(null)).toThrow(TypeError);
     });

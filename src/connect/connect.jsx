@@ -4,15 +4,19 @@ import isFunction from 'lodash/isFunction';
 import isPlainObject from 'lodash/isPlainObject';
 import mapValues from 'lodash/mapValues';
 import omit from 'lodash/omit';
+import assign from 'lodash/assign';
 import {Observable} from 'rxjs/Observable';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import 'rxjs/add/observable/empty';
 import 'rxjs/add/observable/merge';
+import 'rxjs/add/operator/pluck';
 import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/filter';
 import {isSame, createActionsObservable} from '../utils';
 import {tapDispatchOperator} from './tap-dispatch-operator';
 import {Config} from '../config';
+
+const STORE_STATE = '@@react-redux-rxjs/store-state';
 
 export function connect(
     stateToPropsMapper = (storeState$, props$) => props$,
@@ -36,7 +40,7 @@ export function connect(
         throw new TypeError('[dispatchToActionsMapper] should be a function');
     }
     return WrappedComponent => ReactRedux.connect(
-        storeState => ({storeState})
+        storeState => ({[STORE_STATE]: storeState})
     )(class ReactiveConnectWrapper extends Config.COMPONENT_BASE_CLASS {
         static displayName = `ReactiveConnect(${WrappedComponent.displayName || WrappedComponent.name})`;
 
@@ -44,30 +48,30 @@ export function connect(
 
         constructor(props) {
             super(props);
-            const initialProps = extractComponentProps(props);
-            this.state = initialProps;
-            this.storeStateSubject = new BehaviorSubject(props.storeState);
-            this.propsSubject = new BehaviorSubject(initialProps);
+            this.state = extractComponentProps(props);
+            this.propsSubject = new BehaviorSubject(props);
         }
 
         componentWillMount() {
-            const storeState$ = this.storeStateSubject.distinctUntilChanged();
-            const props$ = this.propsSubject.distinctUntilChanged(isSame);
+            const storeState$ = this.propsSubject
+                .pluck(STORE_STATE)
+                .distinctUntilChanged();
+            const props$ = this.propsSubject
+                .map(extractComponentProps)
+                .distinctUntilChanged(isSame);
             const mappedState$ = stateToPropsMapper(storeState$, props$)
                 .filter(isPlainObject);
+            const combinedProps$ = Observable.combineLatest(
+                props$, mappedState$,
+                (props, mappedState) => assign({}, props, mappedState)
+            ).distinctUntilChanged(isSame);
             const mappedActions$ = createActionsObservable(
                 dispatchToActionsMapper(
                     tapDispatchOperator(this.props.dispatch),
-                    Observable.merge(
-                        props$,
-                        mappedState$
-                    )
+                    combinedProps$
                 )
             ).filter(isPlainObject);
-            const newProps$ = Observable.merge(
-                mappedState$,
-                mappedActions$
-            );
+            const newProps$ = Observable.merge(combinedProps$, mappedActions$);
             this.subscription = newProps$.subscribe(newProps => this.setState(newProps));
         }
 
@@ -76,8 +80,7 @@ export function connect(
         }
 
         componentWillReceiveProps(nextProps) {
-            this.storeStateSubject.next(nextProps.storeState);
-            this.propsSubject.next(extractComponentProps(nextProps));
+            this.propsSubject.next(nextProps);
         }
 
         render() {
@@ -91,7 +94,7 @@ export function connect(
 }
 
 function extractComponentProps(props) {
-    return omit(props, ['storeState', 'dispatch']);
+    return omit(props, [STORE_STATE, 'dispatch']);
 }
 
 function dispatchedActionCreatorMapper(dispatch) {

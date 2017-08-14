@@ -1,10 +1,12 @@
 import React from 'react';
 import isFunction from 'lodash/isFunction';
 import isPlainObject from 'lodash/isPlainObject';
+import assign from 'lodash/assign';
 import {Observable} from 'rxjs/Observable';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import 'rxjs/add/observable/empty';
 import 'rxjs/add/observable/merge';
+import 'rxjs/add/observable/combineLatest';
 import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/filter';
 import {isSame, createActionsObservable} from '../utils';
@@ -40,19 +42,18 @@ export function reactive(
         }
 
         componentWillMount() {
-            const props$ = this.propsSubject.distinctUntilChanged(isSame);
+            const props$ = this.propsSubject
+                .distinctUntilChanged(isSame);
             const mappedProps$ = propsMapper(props$)
                 .filter(isPlainObject);
+            const combinedProps$ = Observable.combineLatest(
+                props$, mappedProps$,
+                (props, mappedProps) => assign({}, props, mappedProps)
+            ).distinctUntilChanged(isSame);
             const mappedActions$ = createActionsObservable(
-                actionsMapper(Observable.merge(
-                    props$,
-                    mappedProps$
-                ))
-            );
-            const newProps$ = Observable.merge(
-                mappedProps$,
-                mappedActions$
+                actionsMapper(combinedProps$)
             ).filter(isPlainObject);
+            const newProps$ = Observable.merge(combinedProps$, mappedActions$);
             this.subscription = newProps$.subscribe(newProps => this.setState(newProps));
         }
 

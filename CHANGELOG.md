@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.2] - 2017-08-14
+
+### Improved
+- Shallow compare utility performance
+
+### Fixed
+- Original props should be passed to wrapped/target component as well as transformed props
+
 ## [1.0.1] - 2017-08-11
 
 ### Fixed
@@ -25,5 +33,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *Travis CI* integration
 - *Coveralls* integration
 
-[Unreleased]: https://github.com/redneckz/react-redux-rxjs/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/redneckz/react-redux-rxjs/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/redneckz/react-redux-rxjs/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/redneckz/react-redux-rxjs/compare/v1.0.0...v1.0.1

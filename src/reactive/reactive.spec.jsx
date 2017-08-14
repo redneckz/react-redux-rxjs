@@ -97,11 +97,8 @@ describe('reactive decorator', () => {
         it('should pass original props as well as transformed props to [actionsMapper]', (done) => {
             renderer.render(<FooWrapper baz={123} />);
             const props$ = actionsMapperMock.mock.calls[0][0];
-            props$.bufferCount(2).subscribe((doFooArgs) => {
-                expect(doFooArgs).toEqual([
-                    {baz: 123},
-                    {quuz: 123}
-                ]);
+            props$.subscribe((fooArgs) => {
+                expect(fooArgs).toEqual({baz: 123, quuz: 123});
                 done();
             });
         });

@@ -1,5 +1,4 @@
 import keys from 'lodash/keys';
-import size from 'lodash/size';
 import isPlainObject from 'lodash/isPlainObject';
 
 export function isSame(objA, objB) {
@@ -9,7 +8,9 @@ export function isSame(objA, objB) {
     if (!isPlainObject(objA) || !isPlainObject(objB)) {
         return false;
     }
-    const sameSize = (size(objA) === size(objB));
-    const sameValues = () => keys(objA).every(key => (objA[key] === objB[key]));
+    const keysA = keys(objA);
+    const keysB = keys(objB);
+    const sameSize = (keysA.length === keysB.length);
+    const sameValues = () => keysA.every(key => (objA[key] === objB[key]));
     return sameSize && sameValues();
 }
