@@ -30,34 +30,24 @@ export function reactive(
     if (!isFunction(actionsMapper)) {
         throw new TypeError('[actionsMapper] should be a function');
     }
+
     return WrappedComponent => class ReactiveWrapper extends Config.COMPONENT_BASE_CLASS {
         static displayName = `Reactive(${WrappedComponent.displayName || WrappedComponent.name})`;
-
-        static internals = {WrappedComponent, propsMapper, actionsMapper};
 
         constructor(props) {
             super(props);
             this.state = props;
-            this.propsSubject = new BehaviorSubject(props);
         }
 
         componentWillMount() {
-            const props$ = this.propsSubject
-                .distinctUntilChanged(isSame);
-            const mappedProps$ = propsMapper(props$)
-                .filter(isPlainObject);
-            const combinedProps$ = Observable.combineLatest(
-                props$, mappedProps$,
-                (props, mappedProps) => assign({}, props, mappedProps)
-            ).distinctUntilChanged(isSame);
-            const mappedActions$ = createActionsObservable(
-                actionsMapper(combinedProps$)
-            ).filter(isPlainObject);
-            const newProps$ = Observable.merge(combinedProps$, mappedActions$);
-            this.subscription = newProps$.subscribe(newProps => this.setState(newProps));
+            this.propsSubject = new BehaviorSubject(this.props);
+            const outgoingProps$ = computeOutgoingProps(this.propsSubject);
+            this.subscription = outgoingProps$
+                .subscribe(outgoingProps => this.setState(outgoingProps));
         }
 
         componentWillUnmount() {
+            this.propsSubject.complete();
             this.subscription.unsubscribe();
         }
 
@@ -73,4 +63,17 @@ export function reactive(
             );
         }
     };
+
+    function computeOutgoingProps(rawProps$) {
+        const props$ = rawProps$.distinctUntilChanged(isSame);
+        const mappedProps$ = propsMapper(props$).filter(isPlainObject);
+        const combinedProps$ = Observable.combineLatest(
+            props$, mappedProps$,
+            (props, mappedProps) => assign({}, props, mappedProps)
+        ).distinctUntilChanged(isSame);
+        const mappedActions$ = createActionsObservable(
+            actionsMapper(combinedProps$)
+        ).filter(isPlainObject);
+        return Observable.merge(combinedProps$, mappedActions$);
+    }
 }

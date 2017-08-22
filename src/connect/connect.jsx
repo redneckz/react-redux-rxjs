@@ -44,8 +44,6 @@ export function connect(
     )(class ReactiveConnectWrapper extends Config.COMPONENT_BASE_CLASS {
         static displayName = `ReactiveConnect(${WrappedComponent.displayName || WrappedComponent.name})`;
 
-        static internals = {WrappedComponent, stateToPropsMapper, dispatchToActionsMapper};
-
         constructor(props) {
             super(props);
             this.state = extractComponentProps(props);
