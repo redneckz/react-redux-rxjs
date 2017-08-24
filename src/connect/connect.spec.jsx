@@ -6,6 +6,7 @@ import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/empty';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/ignoreElements';
+import 'rxjs/add/operator/finally';
 import {connect} from './connect';
 
 jest.mock('react-redux', () => {
@@ -189,6 +190,36 @@ describe('connect decorator', () => {
                 expect(fooArgs).toEqual({baz: 123, quuz: 123});
                 done();
             });
+        });
+    });
+
+    describe('should pass completion event on unmount', () => {
+        function expectCompletionEvent(connectToOnComplete) {
+            const onComplete = jest.fn();
+            const FooWrapper = connectToOnComplete(onComplete)(Foo);
+            const fooWrapper = mount(<FooWrapper />);
+            fooWrapper.unmount();
+            expect(onComplete).toHaveBeenCalledTimes(1);
+        }
+
+        it('to [storeState$]', () => {
+            expectCompletionEvent(
+                onComplete => connect(storeState$ => storeState$.finally(onComplete))
+            );
+        });
+
+        it('to [props$]', () => {
+            expectCompletionEvent(
+                onComplete => connect((storeState$, props$) => props$.finally(onComplete))
+            );
+        });
+
+        it('to [mappedActions$]', () => {
+            expectCompletionEvent(
+                onComplete => connect(undefined, {
+                    toggle: visible$ => visible$.finally(onComplete)
+                })
+            );
         });
     });
 

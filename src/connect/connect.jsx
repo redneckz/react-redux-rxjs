@@ -47,33 +47,17 @@ export function connect(
         constructor(props) {
             super(props);
             this.state = extractComponentProps(props);
-            this.propsSubject = new BehaviorSubject(props);
         }
 
         componentWillMount() {
-            const storeState$ = this.propsSubject
-                .pluck(STORE_STATE)
-                .distinctUntilChanged();
-            const props$ = this.propsSubject
-                .map(extractComponentProps)
-                .distinctUntilChanged(isSame);
-            const mappedState$ = stateToPropsMapper(storeState$, props$)
-                .filter(isPlainObject);
-            const combinedProps$ = Observable.combineLatest(
-                props$, mappedState$,
-                (props, mappedState) => assign({}, props, mappedState)
-            ).distinctUntilChanged(isSame);
-            const mappedActions$ = createActionsObservable(
-                dispatchToActionsMapper(
-                    tapDispatchOperator(this.props.dispatch),
-                    combinedProps$
-                )
-            ).filter(isPlainObject);
-            const newProps$ = Observable.merge(combinedProps$, mappedActions$);
-            this.subscription = newProps$.subscribe(newProps => this.setState(newProps));
+            this.propsSubject = new BehaviorSubject(this.props);
+            const outgoingProps$ = computeOutgoingProps(this.propsSubject, this.props.dispatch);
+            this.subscription = outgoingProps$
+                .subscribe(outgoingProps => this.setState(outgoingProps));
         }
 
         componentWillUnmount() {
+            this.propsSubject.complete();
             this.subscription.unsubscribe();
         }
 
@@ -89,6 +73,24 @@ export function connect(
             );
         }
     });
+
+    function computeOutgoingProps(rawProps$, dispatch) {
+        const storeState$ = rawProps$.pluck(STORE_STATE).distinctUntilChanged();
+        const props$ = rawProps$.map(extractComponentProps).distinctUntilChanged(isSame);
+        const mappedState$ = stateToPropsMapper(storeState$, props$)
+            .filter(isPlainObject);
+        const combinedProps$ = Observable.combineLatest(
+            props$, mappedState$,
+            (props, mappedState) => assign({}, props, mappedState)
+        ).distinctUntilChanged(isSame);
+        const mappedActions$ = createActionsObservable(
+            dispatchToActionsMapper(
+                tapDispatchOperator(dispatch),
+                combinedProps$
+            )
+        ).filter(isPlainObject);
+        return Observable.merge(combinedProps$, mappedActions$);
+    }
 }
 
 function extractComponentProps(props) {
