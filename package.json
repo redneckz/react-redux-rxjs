@@ -1,6 +1,6 @@
 {
   "name": "@redneckz/react-redux-rxjs",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "Alexander Alexandrov",
   "description": "React/Redux are going reactive with RxJS by means of this small library",
   "keywords": [
