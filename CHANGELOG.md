@@ -6,9 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.3] - 2017-08-24
+
+### Added
+- Completion event (on unmount)
+- \#2 Make dispatch operator smart
+
+### Changed
+- Dependencies versions
+
 ## [1.0.2] - 2017-08-14
 
-### Improved
+### Changed
 - Shallow compare utility performance
 
 ### Fixed
@@ -33,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - *Travis CI* integration
 - *Coveralls* integration
 
-[Unreleased]: https://github.com/redneckz/react-redux-rxjs/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/redneckz/react-redux-rxjs/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/redneckz/react-redux-rxjs/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/redneckz/react-redux-rxjs/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/redneckz/react-redux-rxjs/compare/v1.0.0...v1.0.1
