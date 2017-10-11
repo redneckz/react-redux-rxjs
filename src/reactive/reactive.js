@@ -1,13 +1,16 @@
-import {createElement} from 'react';
 import {Observable} from 'rxjs/Observable';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import 'rxjs/add/observable/empty';
 import 'rxjs/add/observable/merge';
 import 'rxjs/add/observable/combineLatest';
 import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/operator/filter';
-import {isFunction, isObject, isSame, createActionsObservable} from '../utils';
-import {Config} from '../config';
+import {
+    isFunction,
+    isObject,
+    isSame,
+    createActionsObservable,
+    reactiveWrapper
+} from '../utils';
 
 export function reactive(
     propsMapper = props$ => props$,
@@ -28,36 +31,7 @@ export function reactive(
         throw new TypeError('[actionsMapper] should be a function');
     }
 
-    return WrappedComponent => class ReactiveWrapper extends Config.COMPONENT_BASE_CLASS {
-        static displayName = `Reactive(${WrappedComponent.displayName || WrappedComponent.name})`;
-
-        constructor(props) {
-            super(props);
-            this.state = props;
-        }
-
-        componentWillMount() {
-            this.propsSubject = new BehaviorSubject(this.props);
-            const outgoingProps$ = computeOutgoingProps(this.propsSubject);
-            this.subscription = outgoingProps$
-                .subscribe(outgoingProps => this.setState(outgoingProps));
-        }
-
-        componentWillUnmount() {
-            this.propsSubject.complete();
-            this.subscription.unsubscribe();
-        }
-
-        componentWillReceiveProps(nextProps) {
-            this.propsSubject.next(nextProps);
-        }
-
-        render() {
-            return createElement(WrappedComponent, this.state);
-        }
-    };
-
-    function computeOutgoingProps(rawProps$) {
+    return reactiveWrapper(() => (rawProps$) => {
         const props$ = rawProps$.distinctUntilChanged(isSame);
         const mappedProps$ = propsMapper(props$).filter(isObject);
         const combinedProps$ = Observable.combineLatest(
@@ -68,5 +42,5 @@ export function reactive(
             actionsMapper(combinedProps$)
         ).filter(isObject);
         return Observable.merge(combinedProps$, mappedActions$);
-    }
+    });
 }

@@ -79,19 +79,33 @@ describe('connect decorator', () => {
         expect(fooProps().baz).toEqual(123);
     });
 
-    it('should provide [dispatch] operator/function as argument of [dispatchToActionsMapper] to "push" actions inside store', () => {
+    describe('should provide [dispatch] operator/function', () => {
         const doSomething = payload => ({type: 'SIDE_EFFECT', payload});
-        const dispatchToActionsMapper = jest.fn(() => Observable.empty());
-        const FooWrapper = connect(
-            undefined,
-            dispatchToActionsMapper
-        )(Foo);
-        mount(<FooWrapper />);
-        expect(dispatchToActionsMapper).toBeCalled();
-        const dispatch = dispatchToActionsMapper.mock.calls[0][0]; // first arg
-        expect(isFunction(dispatch)).toBeTruthy();
-        dispatch(doSomething(123));
-        expect(internals.lastAction).toEqual(doSomething(123));
+
+        it('as argument of [dispatchToActionsMapper] to "push" actions inside store', () => {
+            const dispatchToActionsMapper = jest.fn(() => Observable.empty());
+            const FooWrapper = connect(
+                undefined,
+                dispatchToActionsMapper
+            )(Foo);
+            mount(<FooWrapper />);
+            expect(dispatchToActionsMapper).toBeCalled();
+            const dispatch = dispatchToActionsMapper.mock.calls[0][0]; // first arg
+            expect(isFunction(dispatch)).toBeTruthy();
+            dispatch(doSomething(123));
+            expect(internals.lastAction).toEqual(doSomething(123));
+        });
+
+        it('as argument of [stateToPropsMapper] to "push" actions inside store', () => {
+            const stateToPropsMapper = jest.fn(() => Observable.empty());
+            const FooWrapper = connect(stateToPropsMapper)(Foo);
+            mount(<FooWrapper />);
+            expect(stateToPropsMapper).toBeCalled();
+            const dispatch = stateToPropsMapper.mock.calls[0][2]; // third arg
+            expect(isFunction(dispatch)).toBeTruthy();
+            dispatch(doSomething(456));
+            expect(internals.lastAction).toEqual(doSomething(456));
+        });
     });
 
     it('should inject declared actions into underlying/wrapped component', () => {

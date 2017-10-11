@@ -1,4 +1,12 @@
 export {Config} from './config';
 export {connect} from './connect';
 export {reactive} from './reactive';
-export {observableActionMiddleware, selector, isSame} from './utils';
+export {
+    observableActionMiddleware,
+    selector,
+    isFunction,
+    isObject,
+    isNil,
+    isSame,
+    mapValues
+} from './utils';
