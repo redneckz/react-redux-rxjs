@@ -1,6 +1,3 @@
-import zip from 'lodash/zip';
-import times from 'lodash/times';
-import last from 'lodash/last';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/range';
 import 'rxjs/add/operator/bufferCount';
@@ -51,11 +48,11 @@ describe('selector', () => {
         );
         selectFooBaz(state$)::head().subscribe((fooBazHistory) => {
             expect(fooBazHistory).toEqual(
-                zip(
+                BAZ_HISTORY.map(baz => [
                     // Cause the last value of foo is already available
-                    times(HISTORY.length, () => last(FOO_HISTORY)),
-                    BAZ_HISTORY
-                )
+                    FOO_HISTORY[FOO_HISTORY.length - 1],
+                    baz
+                ])
             );
             done();
         });

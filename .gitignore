@@ -2,6 +2,7 @@ node_modules/
 dist/
 es/
 coverage/
+false/
 /npm-debug.log
 .cache/*
 !.cache/.gitkeep

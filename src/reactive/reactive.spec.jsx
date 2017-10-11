@@ -6,20 +6,17 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/withLatestFrom';
 import 'rxjs/add/operator/bufferCount';
-import isFunction from 'lodash/isFunction';
-import ReactShallowRenderer from 'react-test-renderer/shallow';
-import {mount} from 'enzyme';
+import Enzyme, {mount} from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+import {isFunction} from '../utils';
 import {reactive} from './reactive';
+
+Enzyme.configure({adapter: new Adapter()});
 
 describe('reactive decorator', () => {
     function Foo() {
         return <div />;
     }
-
-    let renderer;
-    beforeEach(() => {
-        renderer = new ReactShallowRenderer();
-    });
 
     describe('@reactive(propsMapper)', () => {
         let onComplete;
@@ -32,9 +29,9 @@ describe('reactive decorator', () => {
         });
 
         it('should pass props to underlying/wrapped component through [propsMapper]', () => {
-            renderer.render(<FooWrapper bar={123} quux={456} />);
-            const props = renderer.getRenderOutput().props;
-            expect(props).toEqual({bar: 123, baz: 123, quux: 456});
+            const fooWrapper = mount(<FooWrapper bar={123} quux={456} />);
+            const foo = fooWrapper.find(Foo);
+            expect(foo.props()).toEqual({bar: 123, baz: 123, quux: 456});
         });
 
         it('should pass completion event on unmount', () => {
@@ -53,25 +50,25 @@ describe('reactive decorator', () => {
         });
 
         it('should pass props to underlying/wrapped component', () => {
-            renderer.render(<FooWrapper bar={123} visible />);
-            const props = renderer.getRenderOutput().props;
-            expect(props.bar).toBe(123);
-            expect(props.visible).toBeTruthy();
+            const fooWrapper = mount(<FooWrapper bar={123} visible />);
+            const foo = fooWrapper.find(Foo);
+            expect(foo.props().bar).toBe(123);
+            expect(foo.props().visible).toBeTruthy();
         });
 
         it('should inject declared actions into underlying/wrapped component', () => {
-            renderer.render(<FooWrapper />);
-            const props = renderer.getRenderOutput().props;
-            expect(isFunction(props.toggle)).toBeTruthy();
+            const fooWrapper = mount(<FooWrapper />);
+            const foo = fooWrapper.find(Foo);
+            expect(isFunction(foo.props().toggle)).toBeTruthy();
         });
 
         it('should interact with underlying/wrapped component by means of actions', () => {
-            renderer.render(<FooWrapper visible />);
-            let props = renderer.getRenderOutput().props;
-            expect(props.visible).toBeTruthy();
-            props.toggle(props.visible);
-            props = renderer.getRenderOutput().props;
-            expect(props.visible).toBeFalsy();
+            const fooWrapper = mount(<FooWrapper visible />);
+            const fooProps = () => fooWrapper.find(Foo).props();
+            expect(fooProps().visible).toBeTruthy();
+            fooProps().toggle(fooProps().visible);
+            fooWrapper.update();
+            expect(fooProps().visible).toBeFalsy();
         });
     });
 
@@ -81,32 +78,32 @@ describe('reactive decorator', () => {
         let FooWrapper;
         beforeEach(() => {
             FooWrapper = reactive(props$ => props$.switchMap(
-                ({barId, ...rest}) => fetchBar(barId).map(bar => ({bar, ...rest}))
+                ({barId}) => fetchBar(barId).map(bar => ({bar}))
             ), {
                 toggle: visible$ => visible$.map(visible => ({visible: !visible}))
             })(Foo);
         });
 
         it('should pass props to underlying/wrapped component through [propsMapper]', () => {
-            renderer.render(<FooWrapper barId={123} quux={456} />);
-            const props = renderer.getRenderOutput().props;
-            expect(props.bar).toBe('Bar #123');
-            expect(props.quux).toBe(456);
+            const fooWrapper = mount(<FooWrapper barId={123} quux={456} />);
+            const foo = fooWrapper.find(Foo);
+            expect(foo.props().bar).toBe('Bar #123');
+            expect(foo.props().quux).toBe(456);
         });
 
         it('should inject declared actions into underlying/wrapped component', () => {
-            renderer.render(<FooWrapper />);
-            const props = renderer.getRenderOutput().props;
-            expect(isFunction(props.toggle)).toBeTruthy();
+            const fooWrapper = mount(<FooWrapper />);
+            const foo = fooWrapper.find(Foo);
+            expect(isFunction(foo.props().toggle)).toBeTruthy();
         });
 
         it('should interact with underlying/wrapped component by means of actions', () => {
-            renderer.render(<FooWrapper visible />);
-            let props = renderer.getRenderOutput().props;
-            expect(props.visible).toBeTruthy();
-            props.toggle(props.visible);
-            props = renderer.getRenderOutput().props;
-            expect(props.visible).toBeFalsy();
+            const fooWrapper = mount(<FooWrapper visible />);
+            const fooProps = () => fooWrapper.find(Foo).props();
+            expect(fooProps().visible).toBeTruthy();
+            fooProps().toggle(fooProps().visible);
+            fooWrapper.update();
+            expect(fooProps().visible).toBeFalsy();
         });
     });
 
@@ -120,7 +117,7 @@ describe('reactive decorator', () => {
         });
 
         it('should pass original props as well as transformed props to [actionsMapper]', (done) => {
-            renderer.render(<FooWrapper baz={123} />);
+            mount(<FooWrapper baz={123} />);
             const props$ = actionsMapperMock.mock.calls[0][0];
             props$.subscribe((fooArgs) => {
                 expect(fooArgs).toEqual({baz: 123, quuz: 123});
@@ -137,7 +134,7 @@ describe('reactive decorator', () => {
         beforeEach(() => {
             onComplete = jest.fn();
             FooWrapper = reactive(props$ => props$.switchMap(
-                ({barId, ...rest}) => fetchBar(barId).map(bar => ({bar, ...rest}))
+                ({barId}) => fetchBar(barId).map(bar => ({bar}))
             ), props$ => ({
                 toggle: visible$ => visible$
                     .withLatestFrom(props$)
@@ -150,30 +147,30 @@ describe('reactive decorator', () => {
         });
 
         it('should pass props to underlying/wrapped component through [propsMapper]', () => {
-            renderer.render(<FooWrapper barId={123} quux={456} />);
-            const props = renderer.getRenderOutput().props;
-            expect(props.bar).toBe('Bar #123');
-            expect(props.quux).toBe(456);
+            const fooWrapper = mount(<FooWrapper barId={123} quux={456} />);
+            const foo = fooWrapper.find(Foo);
+            expect(foo.props().bar).toBe('Bar #123');
+            expect(foo.props().quux).toBe(456);
         });
 
         it('should inject declared actions into underlying/wrapped component', () => {
-            renderer.render(<FooWrapper />);
-            const props = renderer.getRenderOutput().props;
-            expect(isFunction(props.toggle)).toBeTruthy();
+            const fooWrapper = mount(<FooWrapper />);
+            const foo = fooWrapper.find(Foo);
+            expect(isFunction(foo.props().toggle)).toBeTruthy();
         });
 
         it('should interact with underlying/wrapped component by means of actions transduced with [actionsMapper]', () => {
-            renderer.render(<FooWrapper barId={123} visible />);
-            let props = renderer.getRenderOutput().props;
-            expect(props.visible).toBeTruthy();
-            props.toggle(props.visible);
-            props = renderer.getRenderOutput().props;
-            expect(props.visible).toBeFalsy();
-            expect(props.message).toBe('Bar #123 was closed');
-            props.toggle(props.visible);
-            props = renderer.getRenderOutput().props;
-            expect(props.visible).toBeTruthy();
-            expect(props.message).toBe('Bar #123 was opened');
+            const fooWrapper = mount(<FooWrapper barId={123} visible />);
+            const fooProps = () => fooWrapper.find(Foo).props();
+            expect(fooProps().visible).toBeTruthy();
+            fooProps().toggle(fooProps().visible);
+            fooWrapper.update();
+            expect(fooProps().visible).toBeFalsy();
+            expect(fooProps().message).toBe('Bar #123 was closed');
+            fooProps().toggle(fooProps().visible);
+            fooWrapper.update();
+            expect(fooProps().visible).toBeTruthy();
+            expect(fooProps().message).toBe('Bar #123 was opened');
         });
 
         it('should pass completion event on unmount', () => {

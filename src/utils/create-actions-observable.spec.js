@@ -6,10 +6,7 @@ import 'rxjs/add/operator/skip';
 import 'rxjs/add/operator/bufferCount';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/isEmpty';
-import isPlainObject from 'lodash/isPlainObject';
-import isFunction from 'lodash/isFunction';
-import keys from 'lodash/keys';
-import values from 'lodash/values';
+import {isFunction, isObject} from '../utils';
 import {createActionsObservable} from './create-actions-observable';
 
 describe('createActionsObservable', () => {
@@ -19,22 +16,26 @@ describe('createActionsObservable', () => {
         doBaz: baz$ => baz$.map(baz => ({baz}))
     };
 
-    it('should create observable containing action function for each action definition',
+    it(
+        'should create observable containing action function for each action definition',
         (done) => {
             const actionsObservable = createActionsObservable(ACTIONS_DEFINITIONS);
             expect(actionsObservable).toBeInstanceOf(Observable);
             actionsObservable.first().subscribe((actions) => {
-                expect(isPlainObject(actions)).toBeTruthy();
-                keys(ACTIONS_DEFINITIONS).forEach((key) => {
-                    expect(keys(actions)).toContain(key);
+                expect(isObject(actions)).toBeTruthy();
+                Object.keys(ACTIONS_DEFINITIONS).forEach((key) => {
+                    expect(Object.keys(actions)).toContain(key);
                 });
-                expect(values(actions).every(isFunction)).toBeTruthy();
+                expect(Object.keys(actions).every(
+                    key => isFunction(actions[key])
+                )).toBeTruthy();
                 done();
             });
         }
     );
 
-    it('should handle each action invocation by means of transducer declared in action definition',
+    it(
+        'should handle each action invocation by means of transducer declared in action definition',
         (done) => {
             const actionsObservable = createActionsObservable(ACTIONS_DEFINITIONS);
             expect(actionsObservable).toBeInstanceOf(Observable);

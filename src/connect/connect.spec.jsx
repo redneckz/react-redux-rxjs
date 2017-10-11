@@ -1,13 +1,16 @@
 import React from 'react';
-import {mount} from 'enzyme';
-import isFunction from 'lodash/isFunction';
+import Enzyme, {mount} from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
 import {internals} from 'react-redux';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/empty';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/ignoreElements';
 import 'rxjs/add/operator/finally';
+import {isFunction} from '../utils';
 import {connect} from './connect';
+
+Enzyme.configure({adapter: new Adapter()});
 
 jest.mock('react-redux', () => {
     const {createElement} = require('react'); // eslint-disable-line global-require
@@ -69,11 +72,11 @@ describe('connect decorator', () => {
             storeState$ => storeState$.map(({xyzzy}) => ({baz: xyzzy}))
         )(Foo);
         const fooWrapper = mount(<FooWrapper />);
-        const foo = fooWrapper.find(Foo);
-        expect(foo.props().baz).toEqual(internals.INITIAL_STORE_STATE.xyzzy);
+        const fooProps = () => fooWrapper.find(Foo).props();
+        expect(fooProps().baz).toEqual(internals.INITIAL_STORE_STATE.xyzzy);
         internals.storeState = {xyzzy: 123};
-        fooWrapper.update();
-        expect(foo.props().baz).toEqual(123);
+        forceUpdate(fooWrapper);
+        expect(fooProps().baz).toEqual(123);
     });
 
     it('should provide [dispatch] operator/function as argument of [dispatchToActionsMapper] to "push" actions inside store', () => {
@@ -149,11 +152,13 @@ describe('connect decorator', () => {
             })
         )(Foo);
         const fooWrapper = mount(<FooWrapper />);
-        const foo = fooWrapper.find(Foo);
-        foo.props().toggle(false);
-        expect(foo.props().visible).toBe(true); // visibility inversion
-        foo.props().toggle(true);
-        expect(foo.props().visible).toBe(false); // visibility inversion
+        const fooProps = () => fooWrapper.find(Foo).props();
+        fooProps().toggle(false);
+        forceUpdate(fooWrapper);
+        expect(fooProps().visible).toBe(true); // visibility inversion
+        fooProps().toggle(true);
+        forceUpdate(fooWrapper);
+        expect(fooProps().visible).toBe(false); // visibility inversion
     });
 
     it('should interact with store by means of dispatched actions', () => {
@@ -167,10 +172,10 @@ describe('connect decorator', () => {
             })
         )(Foo);
         const fooWrapper = mount(<FooWrapper />);
-        const foo = fooWrapper.find(Foo);
-        foo.props().toggle(true);
+        const fooProps = () => fooWrapper.find(Foo).props();
+        fooProps().toggle(true);
         expect(internals.lastAction).toEqual(doToggle(true));
-        foo.props().toggle(false);
+        fooProps().toggle(false);
         expect(internals.lastAction).toEqual(doToggle(false));
     });
 
@@ -230,3 +235,8 @@ describe('connect decorator', () => {
         expect(() => connect(undefined, null)).toThrow(TypeError);
     });
 });
+
+function forceUpdate(fooWrapper) {
+    const props = fooWrapper.props();
+    fooWrapper.setProps({...props, forceUpdate: !props.forceUpdate});
+}

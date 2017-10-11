@@ -3,7 +3,7 @@
     "plugins": [
         "transform-class-properties",
         ["transform-runtime", {
-            "helpers": false,
+            "helpers": true,
             "polyfill": false,
             "regenerator": true
         }]

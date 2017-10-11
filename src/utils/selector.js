@@ -1,8 +1,8 @@
-import isFunction from 'lodash/isFunction';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/combineLatest';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/distinctUntilChanged';
+import {isFunction} from './is';
 
 const DEFAULT_PARENT_SELECTOR = state$ => state$;
 

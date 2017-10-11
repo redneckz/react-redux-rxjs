@@ -1,17 +1,7 @@
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/filter';
-import isFunction from 'lodash/isFunction';
-import isPlainObject from 'lodash/isPlainObject';
-import cond from 'lodash/cond';
-import identity from 'lodash/identity';
-
-const adjustValueToAction = cond([
-    // Common case (Observable of actions)
-    [isPlainObject, identity],
-    // #2 Make dispatch operator smart
-    [isFunction, actionCreator => actionCreator()]
-]);
+import {isFunction} from '../utils';
 
 export function tapDispatchOperator(dispatch) {
     return function tapDispatch(
@@ -21,7 +11,7 @@ export function tapDispatchOperator(dispatch) {
     ) {
         if (this && isFunction(this.do)) {
             return this
-                .map(actionCreator || adjustValueToAction || identity)
+                .map(actionCreator || adjustValueToAction)
                 .filter(Boolean)
                 .do(
                     dispatch,
@@ -32,4 +22,9 @@ export function tapDispatchOperator(dispatch) {
         const action = actionCreator;
         return dispatch(action);
     };
+}
+
+function adjustValueToAction(action) {
+    // #2 Make dispatch operator smart
+    return isFunction(action) ? action() : action;
 }

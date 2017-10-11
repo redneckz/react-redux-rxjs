@@ -1,6 +1,6 @@
-import isFunction from 'lodash/isFunction';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
+import {isFunction} from '../utils';
 import {observableActionMiddleware} from './observable-action-middleware';
 
 describe('Observable action middleware', () => {

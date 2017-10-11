@@ -1,4 +1,3 @@
-import identity from 'lodash/identity';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/map';
@@ -11,7 +10,7 @@ describe('tapDispatchOperator', () => {
     let originalDispatch;
     let dispatch;
     beforeEach(() => {
-        originalDispatch = jest.fn(identity);
+        originalDispatch = jest.fn(v => v);
         dispatch = tapDispatchOperator(originalDispatch);
     });
 
