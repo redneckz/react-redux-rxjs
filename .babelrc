@@ -1,11 +1,21 @@
 {
-    "presets": ["es2015", "stage-0", "react"],
-    "plugins": [
-        "transform-class-properties",
-        ["transform-runtime", {
-            "helpers": true,
-            "polyfill": false,
-            "regenerator": true
-        }]
-    ]
+  "presets": [
+    ["env", {
+      "targets": {
+        "browsers": [
+          "ie >= 10",
+          "Chrome >= 54",
+          "Safari >= 9",
+          "Firefox >= 50",
+          "Opera >= 43",
+          "last 2 versions"
+        ]
+      }
+    }],
+    "stage-0",
+    "react"
+  ],
+  "plugins": [
+    "transform-runtime"
+  ]
 }

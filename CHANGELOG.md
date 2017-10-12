@@ -6,14 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- *babel-preset-es2015* to *babel-preset-env*
+- Editor configuration
+
 ## [1.0.4] - 2017-10-11
 
 ### Added
-- stateToPropsMapper signature with dispatch operator as third argument
+- *stateToPropsMapper* signature with dispatch operator as third argument
 
 ### Changed
 - Dependencies versions (checked against React 16)
-- Removed lodash usage
+- Removed *lodash* usage
 
 ## [1.0.3] - 2017-08-24
 
